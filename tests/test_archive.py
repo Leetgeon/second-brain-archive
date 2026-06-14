@@ -5,6 +5,7 @@ import io
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import time
 import unittest
@@ -843,6 +844,27 @@ class DistributionTest(unittest.TestCase):
         self.assertIn("Archive Operator", privacy)
         self.assertIn("mailto:support@example.com", privacy)
         self.assertIn("Archive Operator", terms)
+
+    def test_public_site_links_all_installers(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "site"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/build_public_site.py",
+                    str(output),
+                ],
+                cwd=Path(__file__).resolve().parents[1],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            homepage = (output / "index.html").read_text(encoding="utf-8")
+
+        self.assertIn("Second-Brain-Archive-macOS-arm64.dmg", homepage)
+        self.assertIn("Second-Brain-Archive-macOS-x86_64.dmg", homepage)
+        self.assertIn("Second-Brain-Archive-Windows-x64.exe", homepage)
+        self.assertIn("개발자 서명 전 시험 배포본", homepage)
 
 
 if __name__ == "__main__":

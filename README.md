@@ -34,9 +34,14 @@ Finder에서는 `Second Brain.command`를 더블클릭해 대시보드와 브라
 
 배포 빌드는 운영체제별로 분리됩니다.
 
-- macOS Apple Silicon: `Second-Brain-Archive-macOS-arm64.dmg`
-- macOS Intel: `Second-Brain-Archive-macOS-x86_64.dmg`
-- Windows 64비트: `Second-Brain-Archive-Windows-x64.exe`
+- [macOS Apple Silicon 다운로드](https://github.com/Leetgeon/second-brain-archive/releases/download/v0.2.0/Second-Brain-Archive-macOS-arm64.dmg)
+- [macOS Intel 다운로드](https://github.com/Leetgeon/second-brain-archive/releases/download/v0.2.0/Second-Brain-Archive-macOS-x86_64.dmg)
+- [Windows 64비트 다운로드](https://github.com/Leetgeon/second-brain-archive/releases/download/v0.2.0/Second-Brain-Archive-Windows-x64.exe)
+
+전체 변경 내용과 파일 크기는
+[v0.2.0 릴리스 페이지](https://github.com/Leetgeon/second-brain-archive/releases/tag/v0.2.0)에서
+확인할 수 있습니다. 현재 설치 파일은 개발자 서명 전 시험 배포본이므로 macOS
+Gatekeeper 또는 Windows SmartScreen 경고가 표시될 수 있습니다.
 
 Google 검증용 공개 설치본은 YouTube 정책에 따라 재생목록의 링크와 메타데이터만
 가져오며 영상·음성·자막 다운로드 엔진을 포함하지 않습니다. 사용자가 소유한

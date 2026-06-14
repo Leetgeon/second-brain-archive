@@ -8,16 +8,39 @@ from pathlib import Path
 from second_brain_archive.public_info import PublicInfo, public_info
 
 
+RELEASE_VERSION = "v0.2.0"
+RELEASE_BASE_URL = (
+    "https://github.com/Leetgeon/second-brain-archive/releases/download/"
+    f"{RELEASE_VERSION}"
+)
+RELEASE_PAGE_URL = (
+    "https://github.com/Leetgeon/second-brain-archive/releases/tag/"
+    f"{RELEASE_VERSION}"
+)
+
 STYLE = """
 :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; }
 body { margin: 0; color: #17202a; background: #f5f1e8; line-height: 1.65; }
-main { max-width: 780px; margin: 0 auto; padding: 72px 24px 96px; }
+main { max-width: 900px; margin: 0 auto; padding: 72px 24px 96px; }
 nav { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 64px; }
 a { color: #235347; }
 h1 { font-size: clamp(2.3rem, 7vw, 4.5rem); line-height: 1.05; }
 h2 { margin-top: 2.4rem; }
 .eyebrow { color: #96623b; letter-spacing: .14em; font-weight: 700; }
 .card { margin-top: 32px; padding: 28px; background: #fffdf7; border-radius: 18px; }
+.download-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px; margin-top: 20px; }
+.download { display: flex; flex-direction: column; padding: 22px; color: inherit;
+  background: #fff; border: 1px solid #ded8ca; border-radius: 14px;
+  text-decoration: none; }
+.download:hover { border-color: #235347; transform: translateY(-1px); }
+.download strong { color: #235347; font-size: 1.08rem; }
+.download span { margin-top: 6px; color: #647067; }
+.notice { margin-top: 20px; padding: 16px 18px; background: #f3eadc;
+  border-left: 4px solid #96623b; border-radius: 8px; }
+.actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 24px; }
+.button { display: inline-block; padding: 11px 16px; color: #fff;
+  background: #235347; border-radius: 10px; text-decoration: none; font-weight: 700; }
 footer { margin-top: 64px; color: #647067; }
 """
 
@@ -50,12 +73,47 @@ def page(info: PublicInfo, title: str, body: str) -> str:
 
 
 def home(info: PublicInfo) -> str:
+    arm_url = (
+        f"{RELEASE_BASE_URL}/Second-Brain-Archive-macOS-arm64.dmg"
+    )
+    intel_url = (
+        f"{RELEASE_BASE_URL}/Second-Brain-Archive-macOS-x86_64.dmg"
+    )
+    windows_url = (
+        f"{RELEASE_BASE_URL}/Second-Brain-Archive-Windows-x64.exe"
+    )
     return f"""
   <p class="eyebrow">LOCAL-FIRST KNOWLEDGE ARCHIVE</p>
   <h1>{html.escape(info.app_name)}</h1>
   <p>Google 계정의 YouTube 재생목록 제목, 항목 메타데이터와 원본 링크를 사용자의
   컴퓨터에만 저장하고 검색·Markdown 내보내기·로컬 AI 질문에 활용하는 데스크톱
   애플리케이션입니다.</p>
+  <section class="card" id="download">
+    <p class="eyebrow">DOWNLOAD {RELEASE_VERSION}</p>
+    <h2>내 컴퓨터용 설치 파일</h2>
+    <div class="download-grid">
+      <a class="download" href="{arm_url}">
+        <strong>Mac · Apple Silicon</strong>
+        <span>M1, M2, M3, M4 이상</span>
+      </a>
+      <a class="download" href="{intel_url}">
+        <strong>Mac · Intel</strong>
+        <span>2020년 이전 Intel Mac</span>
+      </a>
+      <a class="download" href="{windows_url}">
+        <strong>Windows · 64비트</strong>
+        <span>Windows 10 또는 11</span>
+      </a>
+    </div>
+    <p class="notice"><strong>현재 설치 파일은 개발자 서명 전 시험 배포본입니다.</strong>
+    macOS Gatekeeper 또는 Windows SmartScreen 경고가 표시될 수 있습니다.
+    Google 로그인은 앱의 OAuth 운영 전환과 검증이 완료된 뒤 모든 계정에서
+    경고 없이 사용할 수 있습니다.</p>
+    <div class="actions">
+      <a class="button" href="{RELEASE_PAGE_URL}">릴리스 상세 보기</a>
+      <a href="https://github.com/Leetgeon/second-brain-archive">소스 코드</a>
+    </div>
+  </section>
   <section class="card">
     <h2>Google 데이터 사용 범위</h2>
     <p><code>youtube.readonly</code> 권한은 사용자가 선택한 계정의 공개·일부공개·
