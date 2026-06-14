@@ -122,8 +122,12 @@ the narrowest scope that can access the user's private playlists.
 GitHub Actions의 설치본 빌드는 다음 항목이 모두 있어야 진행된다.
 
 - 위의 공개 신원 Actions variables
-- `YOUTUBE_OAUTH_JSON_BASE64` 운영용 데스크톱 OAuth JSON secret
+- 비밀값이 없는 `youtube_oauth_public.json`
 - `SECOND_BRAIN_PROFILE=public`
 
 누락된 값이 있으면 정식 릴리스 빌드는 실패한다. 로컬 개발 빌드는 기존처럼 빈
 공개 신원 정보로도 실행할 수 있다.
+
+전체 OAuth JSON과 `client_secret`은 GitHub Secret에도 업로드하지 않는다.
+설치 앱은 비밀을 보관할 수 없고 Google의 데스크톱 OAuth 토큰 교환에서도
+`client_secret`은 선택 사항이다. 공개 클라이언트 ID와 PKCE를 사용한다.

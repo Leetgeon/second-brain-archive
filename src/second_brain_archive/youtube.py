@@ -70,7 +70,11 @@ class YouTubeAccount:
         self.root = Path(archive_root).expanduser().resolve()
         self.secrets_directory = self.root / "secrets"
         self.client_path = self.secrets_directory / "youtube_client.json"
-        self.bundled_client_path = Path(__file__).with_name("youtube_oauth.json")
+        private_bundle = Path(__file__).with_name("youtube_oauth.json")
+        public_bundle = Path(__file__).with_name("youtube_oauth_public.json")
+        self.bundled_client_path = (
+            private_bundle if private_bundle.is_file() else public_bundle
+        )
         self.token_path = self.secrets_directory / "youtube_token.json"
         self.pending_path = self.secrets_directory / "youtube_oauth_pending.json"
 
@@ -152,17 +156,16 @@ class YouTubeAccount:
         if int(time.time()) - int(pending.get("created_at", 0)) > 900:
             raise ValueError("OAuth 연결 요청이 만료되었습니다. 다시 시작하세요.")
         client = self._load_client()
-        response = self._post_form(
-            TOKEN_ENDPOINT,
-            {
-                "client_id": client["client_id"],
-                "client_secret": client.get("client_secret", ""),
-                "code": code,
-                "code_verifier": pending["code_verifier"],
-                "grant_type": "authorization_code",
-                "redirect_uri": pending["redirect_uri"],
-            },
-        )
+        payload = {
+            "client_id": client["client_id"],
+            "code": code,
+            "code_verifier": pending["code_verifier"],
+            "grant_type": "authorization_code",
+            "redirect_uri": pending["redirect_uri"],
+        }
+        if client.get("client_secret"):
+            payload["client_secret"] = client["client_secret"]
+        response = self._post_form(TOKEN_ENDPOINT, payload)
         self._store_token(response, previous=None)
         self.pending_path.unlink(missing_ok=True)
 
@@ -271,15 +274,14 @@ class YouTubeAccount:
         if not refresh_token:
             raise RuntimeError("YouTube 토큰이 만료되었습니다. 계정을 다시 연결하세요.")
         client = self._load_client()
-        response = self._post_form(
-            TOKEN_ENDPOINT,
-            {
-                "client_id": client["client_id"],
-                "client_secret": client.get("client_secret", ""),
-                "refresh_token": refresh_token,
-                "grant_type": "refresh_token",
-            },
-        )
+        payload = {
+            "client_id": client["client_id"],
+            "refresh_token": refresh_token,
+            "grant_type": "refresh_token",
+        }
+        if client.get("client_secret"):
+            payload["client_secret"] = client["client_secret"]
+        response = self._post_form(TOKEN_ENDPOINT, payload)
         self._store_token(response, previous=token)
         return str(response["access_token"])
 

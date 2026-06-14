@@ -24,7 +24,6 @@ jobs:
             arch: x86_64
     runs-on: ${{ matrix.runner }}
     env:
-      YOUTUBE_OAUTH_JSON_BASE64: ${{ secrets.YOUTUBE_OAUTH_JSON_BASE64 }}
       MACOS_CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
       SECOND_BRAIN_RELEASE: "1"
       SECOND_BRAIN_OPERATOR_NAME: ${{ vars.SECOND_BRAIN_OPERATOR_NAME }}
@@ -50,10 +49,6 @@ jobs:
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PASSWORD" -A
           security set-key-partition-list -S apple-tool:,apple: -s \
             -k "$MACOS_KEYCHAIN_PASSWORD" build.keychain
-      - name: Configure bundled Google OAuth
-        if: env.YOUTUBE_OAUTH_JSON_BASE64 != ''
-        run: |
-          python -c "import base64, os, pathlib; pathlib.Path('src/second_brain_archive/youtube_oauth.json').write_bytes(base64.b64decode(os.environ['YOUTUBE_OAUTH_JSON_BASE64']))"
       - name: Build DMG
         run: ./scripts/build_macos.sh
         env:
@@ -71,7 +66,6 @@ jobs:
     name: Windows installer
     runs-on: windows-latest
     env:
-      YOUTUBE_OAUTH_JSON_BASE64: ${{ secrets.YOUTUBE_OAUTH_JSON_BASE64 }}
       WINDOWS_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}
       WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
       SECOND_BRAIN_RELEASE: "1"
@@ -84,11 +78,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Configure bundled Google OAuth
-        if: env.YOUTUBE_OAUTH_JSON_BASE64 != ''
-        shell: pwsh
-        run: |
-          python -c "import base64, os, pathlib; pathlib.Path('src/second_brain_archive/youtube_oauth.json').write_bytes(base64.b64decode(os.environ['YOUTUBE_OAUTH_JSON_BASE64']))"
       - name: Install Inno Setup
         run: choco install innosetup --yes --no-progress
       - name: Build installer

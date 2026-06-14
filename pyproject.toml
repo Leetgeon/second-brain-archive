@@ -28,4 +28,4 @@ second-brain-desktop = "second_brain_archive.desktop:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-second_brain_archive = ["youtube_oauth.json", "public_info.json"]
+second_brain_archive = ["youtube_oauth_public.json", "public_info.json"]

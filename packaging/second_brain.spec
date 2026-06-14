@@ -74,6 +74,11 @@ public_info_path.write_text(
 
 binaries = []
 datas = collect_data_files("second_brain_archive")
+datas = [
+    entry
+    for entry in datas
+    if Path(entry[0]).name != "youtube_oauth.json"
+]
 datas.append((str(profile_path), "second_brain_archive"))
 datas.append((str(public_info_path), "second_brain_archive"))
 hiddenimports = []

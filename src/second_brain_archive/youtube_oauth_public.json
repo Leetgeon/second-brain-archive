@@ -1,0 +1,11 @@
+{
+  "installed": {
+    "client_id": "555924142296-ejkju5pjls81fg022ep7lq9o36fj5noq.apps.googleusercontent.com",
+    "project_id": "second-brain-archive-499306",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "redirect_uris": [
+      "http://localhost"
+    ]
+  }
+}

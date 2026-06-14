@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -535,6 +536,45 @@ class YouTubeAccountTest(unittest.TestCase):
 
         self.assertTrue(account.is_configured)
         self.assertEqual(account.configuration_source, "bundled")
+
+    def test_pkce_token_exchange_does_not_require_client_secret(self) -> None:
+        public_client = Path(self.temporary_directory.name) / "public-client.json"
+        public_client.write_text(
+            json.dumps(
+                {
+                    "installed": {
+                        "client_id": "public-client.apps.googleusercontent.com",
+                        "project_id": "public-project",
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        self.account.bundled_client_path = public_client
+        self.account._write_secret(
+            self.account.pending_path,
+            {
+                "state": "expected-state",
+                "code_verifier": "verifier",
+                "redirect_uri": "http://127.0.0.1:8765/",
+                "created_at": int(time.time()),
+            },
+        )
+
+        with patch.object(
+            self.account,
+            "_post_form",
+            return_value={"access_token": "token", "expires_in": 3600},
+        ) as post_form:
+            self.account.exchange_callback("authorization-code", "expected-state")
+
+        payload = post_form.call_args.args[1]
+        self.assertEqual(
+            payload["client_id"],
+            "public-client.apps.googleusercontent.com",
+        )
+        self.assertEqual(payload["code_verifier"], "verifier")
+        self.assertNotIn("client_secret", payload)
 
     def test_project_id_is_read_from_oauth_json(self) -> None:
         data = json.loads(self.client_source.read_text(encoding="utf-8"))
