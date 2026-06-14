@@ -1,0 +1,11 @@
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+data/
+dist/
+build/
+site-dist/
+*.egg-info/
+src/second_brain_archive/youtube_oauth.json

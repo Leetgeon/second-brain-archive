@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "second-brain-archive"
+version = "0.2.0"
+description = "A local-first archive for source-grounded personal knowledge."
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "Second Brain Archive contributors"}]
+dependencies = [
+    "imageio-ffmpeg>=0.6,<1",
+    "yt-dlp[default]>=2025.1.1,<2027",
+]
+
+[project.optional-dependencies]
+build = [
+    "pyinstaller>=6.21,<7",
+]
+
+[project.scripts]
+second-brain = "second_brain_archive.cli:main"
+second-brain-desktop = "second_brain_archive.desktop:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+second_brain_archive = ["youtube_oauth.json", "public_info.json"]

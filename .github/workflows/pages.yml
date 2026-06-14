@@ -1,0 +1,47 @@
+name: Deploy public website
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/build_public_site.py"
+      - "src/second_brain_archive/public_info.py"
+      - ".github/workflows/pages.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build verification website
+        env:
+          PYTHONPATH: src
+          SECOND_BRAIN_OPERATOR_NAME: ${{ vars.SECOND_BRAIN_OPERATOR_NAME }}
+          SECOND_BRAIN_SUPPORT_EMAIL: ${{ vars.SECOND_BRAIN_SUPPORT_EMAIL }}
+          SECOND_BRAIN_HOMEPAGE_URL: ${{ vars.SECOND_BRAIN_HOMEPAGE_URL }}
+          SECOND_BRAIN_JURISDICTION: ${{ vars.SECOND_BRAIN_JURISDICTION }}
+        run: python scripts/build_public_site.py site-dist
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site-dist
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

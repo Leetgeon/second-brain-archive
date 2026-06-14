@@ -1,0 +1,114 @@
+name: Build desktop installers
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    name: macOS installer (${{ matrix.arch }})
+    strategy:
+      matrix:
+        include:
+          - runner: macos-14
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    env:
+      YOUTUBE_OAUTH_JSON_BASE64: ${{ secrets.YOUTUBE_OAUTH_JSON_BASE64 }}
+      MACOS_CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
+      SECOND_BRAIN_RELEASE: "1"
+      SECOND_BRAIN_OPERATOR_NAME: ${{ vars.SECOND_BRAIN_OPERATOR_NAME }}
+      SECOND_BRAIN_SUPPORT_EMAIL: ${{ vars.SECOND_BRAIN_SUPPORT_EMAIL }}
+      SECOND_BRAIN_HOMEPAGE_URL: ${{ vars.SECOND_BRAIN_HOMEPAGE_URL }}
+      SECOND_BRAIN_JURISDICTION: ${{ vars.SECOND_BRAIN_JURISDICTION }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Import Apple signing certificate
+        if: env.MACOS_CERTIFICATE_BASE64 != ''
+        env:
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+        run: |
+          python -c "import base64, os, pathlib; pathlib.Path('certificate.p12').write_bytes(base64.b64decode(os.environ['MACOS_CERTIFICATE_BASE64']))"
+          security create-keychain -p "$MACOS_KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$MACOS_KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -lut 21600 build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PASSWORD" -A
+          security set-key-partition-list -S apple-tool:,apple: -s \
+            -k "$MACOS_KEYCHAIN_PASSWORD" build.keychain
+      - name: Configure bundled Google OAuth
+        if: env.YOUTUBE_OAUTH_JSON_BASE64 != ''
+        run: |
+          python -c "import base64, os, pathlib; pathlib.Path('src/second_brain_archive/youtube_oauth.json').write_bytes(base64.b64decode(os.environ['YOUTUBE_OAUTH_JSON_BASE64']))"
+      - name: Build DMG
+        run: ./scripts/build_macos.sh
+        env:
+          SECOND_BRAIN_PROFILE: public
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}-installer
+          path: dist/*.dmg
+
+  windows:
+    name: Windows installer
+    runs-on: windows-latest
+    env:
+      YOUTUBE_OAUTH_JSON_BASE64: ${{ secrets.YOUTUBE_OAUTH_JSON_BASE64 }}
+      WINDOWS_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}
+      WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+      SECOND_BRAIN_RELEASE: "1"
+      SECOND_BRAIN_OPERATOR_NAME: ${{ vars.SECOND_BRAIN_OPERATOR_NAME }}
+      SECOND_BRAIN_SUPPORT_EMAIL: ${{ vars.SECOND_BRAIN_SUPPORT_EMAIL }}
+      SECOND_BRAIN_HOMEPAGE_URL: ${{ vars.SECOND_BRAIN_HOMEPAGE_URL }}
+      SECOND_BRAIN_JURISDICTION: ${{ vars.SECOND_BRAIN_JURISDICTION }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Configure bundled Google OAuth
+        if: env.YOUTUBE_OAUTH_JSON_BASE64 != ''
+        shell: pwsh
+        run: |
+          python -c "import base64, os, pathlib; pathlib.Path('src/second_brain_archive/youtube_oauth.json').write_bytes(base64.b64decode(os.environ['YOUTUBE_OAUTH_JSON_BASE64']))"
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+      - name: Build installer
+        shell: pwsh
+        env:
+          SECOND_BRAIN_PROFILE: public
+        run: ./scripts/build_windows.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/installer/*.exe
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [macos, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" release/* --generate-notes
