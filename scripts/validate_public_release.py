@@ -13,9 +13,9 @@ def main() -> int:
         errors.append("youtube_oauth_public.json")
     if errors:
         raise SystemExit(
-            "공개 릴리스 설정이 누락됐습니다: " + ", ".join(errors)
+            "Missing public release configuration: " + ", ".join(errors)
         )
-    print("공개 릴리스 설정 확인 완료")
+    print("Public release configuration is valid.")
     return 0
 
 
