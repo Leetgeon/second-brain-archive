@@ -17,6 +17,7 @@ RELEASE_PAGE_URL = (
     "https://github.com/Leetgeon/second-brain-archive/releases/tag/"
     f"{RELEASE_VERSION}"
 )
+SEARCH_CONSOLE_VERIFICATION_FILE = "google139ae45559051ca9.html"
 
 STYLE = """
 :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; }
@@ -184,6 +185,11 @@ def main() -> int:
         target = output / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(contents, encoding="utf-8")
+    verification = output / SEARCH_CONSOLE_VERIFICATION_FILE
+    verification.write_text(
+        f"google-site-verification: {SEARCH_CONSOLE_VERIFICATION_FILE}\n",
+        encoding="utf-8",
+    )
     (output / ".nojekyll").write_text("", encoding="utf-8")
     print(output)
     return 0

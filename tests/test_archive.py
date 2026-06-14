@@ -860,11 +860,18 @@ class DistributionTest(unittest.TestCase):
                 text=True,
             )
             homepage = (output / "index.html").read_text(encoding="utf-8")
+            verification = (
+                output / "google139ae45559051ca9.html"
+            ).read_text(encoding="utf-8")
 
         self.assertIn("Second-Brain-Archive-macOS-arm64.dmg", homepage)
         self.assertIn("Second-Brain-Archive-macOS-x86_64.dmg", homepage)
         self.assertIn("Second-Brain-Archive-Windows-x64.exe", homepage)
         self.assertIn("개발자 서명 전 시험 배포본", homepage)
+        self.assertEqual(
+            verification,
+            "google-site-verification: google139ae45559051ca9.html\n",
+        )
 
 
 if __name__ == "__main__":
